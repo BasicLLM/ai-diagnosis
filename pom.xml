@@ -59,6 +59,20 @@
 
     <build>
         <plugins>
+
+            <!-- 添加 Spring Boot Maven 插件 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal> <!-- 关键：重新打包生成可执行 JAR -->
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -74,12 +88,13 @@
                                 <!-- 基础镜像 -->
                                 <from>openjdk:17-jdk-slim</from>
                                 <!-- 入口点 -->
-                                <entryPoint>["java", "-jar", "/app.jar"]</entryPoint>
+                                <entryPoint>["java", "-jar", "/ai-diagnosis-0.0.1.jar"]</entryPoint>
 
                                 <!-- 复制 JAR 包 -->
                                 <assembly>
                                     <descriptorRef>artifact</descriptorRef>
                                     <targetDir>/</targetDir>
+                                    <!-- 显式指定 JAR 路径 -->
                                     <inline>
                                         <fileSets>
                                             <fileSet>
@@ -87,10 +102,7 @@
                                                 <includes>
                                                     <include>*.jar</include>
                                                 </includes>
-                                                <!-- 重命名 JAR 文件为 app.jar -->
-                                                <fileMode>0644</fileMode>
                                                 <outputDirectory>/</outputDirectory>
-                                                <destName>app.jar</destName>
                                             </fileSet>
                                         </fileSets>
                                     </inline>
