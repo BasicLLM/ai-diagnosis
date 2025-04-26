@@ -26,8 +26,8 @@ public class DiagnosisController {
      */
     @PostMapping("/diagnose")
     public SseEmitter diagnose(
-            @RequestHeader("provider") String provider,
-            @RequestHeader("model") String model,
+            @RequestHeader(value = "provider",defaultValue = "kimi") String provider,
+            @RequestHeader(value = "model",defaultValue = "moonshot-v1-128k") String model,
             @RequestBody PatientCondition condition
     ) {
         return diagnosisService.diagnose(provider, model, condition);
