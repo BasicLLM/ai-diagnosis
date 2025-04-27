@@ -4,6 +4,8 @@
 
 https://zhangming.me/ai:demo:ai-diagnosis
 
+![AI 诊断界面](docs/img.png)
+
 ### 诊断接口
 
 **接口地址：** `/v1/ai/diagnose`
