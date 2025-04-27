@@ -1,5 +1,9 @@
 # AI 诊断项目后端
 
+### 演示地址
+
+https://zhangming.me/ai:demo:ai-diagnosis
+
 ### 接口访问
 
 **接口地址：** `/v1/ai/diagnose`
