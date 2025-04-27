@@ -4,10 +4,12 @@
 
 https://zhangming.me/ai:demo:ai-diagnosis
 
-### 接口访问
+### 诊断接口
 
 **接口地址：** `/v1/ai/diagnose`
+
 **请求方法：** POST
+
 **请求参数：**
 
 请求头(Header)配置如下 :
