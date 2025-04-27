@@ -12,8 +12,8 @@ aichat:
         file-query-url: "https://api.moonshot.cn/v1/files/{file_id}"
         file-content-url: "https://api.moonshot.cn/v1/files/{file_id}/content"
       authentications:
-       - organization-id: "cou9h12vk6gfi4q7fn9g"
-         key: "sk-pjqP8Ei2jqc4U72eArd8p1AOhozPgn76KEl3gjTR9Q8nQd27"
+       - organization-id: "xxxx"  # 此处填写 kimi 的 organization id
+         key: "sk-xxxxx"          # 此处 kimi 填写密钥
     - id: "deepseek"
       name: "deepseek"
       chat-service:
@@ -23,8 +23,5 @@ aichat:
         file-query-url: "https://api.deepseek.com/v1/files/{file_id}"
         file-content-url: "https://api.deepseek.com/v1/files/{file_id}/content"
       authentications:
-        - organization-id: "ai-diagnose"
-          key: "sk-a89b0420ced542159d62a608bb930ea2"
-
-auth:
-  token: "kimi-YRGWER8WQGkjwdc1QH2ZAPHCN0xbfeyQ"
+        - organization-id: "ai-diagnose" # 此处填写项目名
+          key: "sk-xxxxxx"               # 此处填写 deepseek 密钥
