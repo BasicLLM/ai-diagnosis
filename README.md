@@ -4,7 +4,7 @@
 
 https://zhangming.me/ai:demo:ai-diagnosis
 
-![AI 诊断界面](docs/img.png)
+![AI 诊断界面](docs/ai-diagnosis.gif)
 
 ### 诊断接口
 
@@ -49,7 +49,7 @@ https://zhangming.me/ai:demo:ai-diagnosis
     "gender": "男",
     "age": 49,
     "chiefComplaint": "右下腹痛并自扪及包块3小时",
-    "historyOfPresentIllness": "3小时前解大便后出现右下腹疼痛，右下腹可触及一包块，既往体健",
+    "historyOfPresentIllness": "3小时前解大便后出现右下腹疼痛，右下腹可触及一包块",
     "pastHistory": "既往体健",
     "personalHistory": null,
     "allergicHistory": null,
