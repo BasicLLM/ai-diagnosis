@@ -8,6 +8,7 @@ import com.basicllm.agent.rag.KnowledgeBaseService;
 import com.basicllm.agent.third.bailian.common.ClientFactory;
 import com.basicllm.agent.third.bailian.config.BailianKnowledgeBaseConfig;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+@Slf4j
 @Service
 public class BailianKnowledgeBaseService implements KnowledgeBaseService {
 
@@ -59,7 +61,8 @@ public class BailianKnowledgeBaseService implements KnowledgeBaseService {
         RetrieveResponseBody body = response.getBody();
 
         // 检查是否查询成功，如果没有查询成功则返回 null
-        if (!body.getSuccess()) {
+        if (body.getSuccess() == null || !body.getSuccess()) {
+            log.error("未成功调用知识库：{}",body);
             return null;
         }
 
