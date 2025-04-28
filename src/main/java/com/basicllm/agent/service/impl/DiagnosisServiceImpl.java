@@ -140,6 +140,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         // 构建用户报告提示词
         String userPrompt;
         if (useRag) {
+
             userPrompt = PromptReader.readPrompt("user-rag.prompt");
 
             // 获取知识库内容，并填充知识库
@@ -179,7 +180,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             StringBuilder builder = new StringBuilder();
             for (int i = 0; i < searchResultList.size(); i ++) {
                 builder.append("【检索到的条目").append(i + 1).append("】\n");
-                builder.append(searchResultList.get(i));
+                builder.append(searchResultList.get(i)).append("\n");
             }
             return builder.toString();
         } else {
