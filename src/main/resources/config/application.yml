@@ -25,3 +25,16 @@ aichat:
       authentications:
         - organization-id: "ai-diagnose" # 此处填写项目名
           key: "sk-xxxxxx"               # 此处填写 deepseek 密钥
+
+alibaba-cloud:
+  secret:
+    assess-key-id: ""     # 许可ID
+    assess-key-secret: "" # 许可密钥
+  service-region:
+    # 请参考 https://api.aliyun.com/product/bailian
+    region-id: "ap-southeast-1"
+    end-point: "bailian.ap-southeast-1.aliyuncs.com"
+
+bailian-knowledge-base: # 百炼大模型知识库
+  workspace-id: "" # 业务空间ID
+  index-id: ""     # 知识库ID

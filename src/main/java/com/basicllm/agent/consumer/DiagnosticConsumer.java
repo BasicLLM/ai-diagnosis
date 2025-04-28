@@ -94,9 +94,14 @@ public class DiagnosticConsumer implements Consumer<ChatCompletionResponse> {
     private List<String> extractDiseases(String text) {
 
         // 去除标签
-        String diseasesText = text
-                .replace(DiagnosticReportLabelTag.DISEASES_START,"")
-                .replace(DiagnosticReportLabelTag.DISEASES_END,"");
+//        String diseasesText = text
+//                .replace(DiagnosticReportLabelTag.DISEASES_START,"")
+//                .replace(DiagnosticReportLabelTag.DISEASES_END,"");
+
+        String diseasesText = text.replaceAll(
+                 ".*" + DiagnosticReportLabelTag.DISEASES_START + "(.*)" +
+                         DiagnosticReportLabelTag.DISEASES_END + ".*",
+                "$1");
 
         // 将疾病进行分割
         String[] diseases = diseasesText.split(DiagnosticReportLabelTag.SEPARATOR);

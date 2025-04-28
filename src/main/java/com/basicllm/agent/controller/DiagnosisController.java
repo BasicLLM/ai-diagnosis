@@ -1,5 +1,6 @@
 package com.basicllm.agent.controller;
 
+import com.basicllm.agent.model.DiagnosisRequest;
 import com.basicllm.agent.model.PatientCondition;
 import com.basicllm.agent.service.DiagnosisService;
 import lombok.extern.slf4j.Slf4j;
@@ -19,18 +20,17 @@ public class DiagnosisController {
     /**
      * AI 诊断
      *
-     * @param provider  AI 提供商
-     * @param model     AI 模型
-     * @param condition 病人病历
+     * @param diagnosisRequest 诊断请求对象
      * @return 诊断结果
      */
     @PostMapping("/diagnose")
     public SseEmitter diagnose(
-            @RequestHeader(value = "provider",defaultValue = "kimi") String provider,
-            @RequestHeader(value = "model",defaultValue = "moonshot-v1-128k") String model,
-            @RequestBody PatientCondition condition
-    ) {
-        return diagnosisService.diagnose(provider, model, condition);
+            @RequestBody DiagnosisRequest diagnosisRequest
+            ) {
+        return diagnosisService.diagnose(
+                diagnosisRequest.getSetting(),
+                diagnosisRequest.getCondition()
+        );
     }
 
 }

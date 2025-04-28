@@ -89,11 +89,36 @@ public class PatientCondition {
         return report.toString();
     }
 
+    public String conciseReport() {
+        StringBuilder report = new StringBuilder();
+
+        addInfo(report,"性别：",gender);
+        addInfo(report,"年龄：",age);
+        addInfo(report,"主诉：",chiefComplaint);
+        addInfo(report,"现病史：",historyOfPresentIllness);
+        addInfo(report,"既往史：",pastHistory);
+        addInfo(report,"个人史：",personalHistory);
+        addInfo(report,"过敏史：",allergicHistory);
+        addInfo(report,"生育史：",reproductiveHistory);
+        addInfo(report,"婚育史：",pregnancyAndDelivery);
+        addInfo(report,"流行病史：",epidemicHistory);
+        addInfo(report,"体格检查：",physicalExamination);
+        addInfo(report,"辅助检查：",auxiliaryExamination);
+
+        return report.toString();
+    }
+
     private String str(Object object) {
         if (object == null) {
             return "";
         }
         return object.toString();
+    }
+
+    private void addInfo(StringBuilder builder,String label,Object object) {
+        if (object != null && !object.toString().trim().isEmpty()) {
+            builder.append(label).append(object).append("\n");
+        }
     }
 
 }
