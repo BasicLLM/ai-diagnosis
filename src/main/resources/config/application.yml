@@ -27,7 +27,7 @@ aichat:
           key: "sk-xxxxxx"               # 此处填写 deepseek 密钥
 
 alibaba-cloud:
-  secret:
+  sam-secret:
     # 请参考：https://help.aliyun.com/zh/ram/user-guide/create-an-accesskey-pair
     access-key-id: "xxxx"     # 许可ID
     access-key-secret: "xxxx" # 许可密钥
