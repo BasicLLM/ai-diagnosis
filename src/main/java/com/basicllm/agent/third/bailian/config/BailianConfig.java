@@ -13,14 +13,14 @@ public class BailianConfig {
     private AlibabaCloudConfig alibabaCloudConfig;
 
     @Bean
-    private StaticCredentialProvider staticCredentialProvider() {
+    public StaticCredentialProvider staticCredentialProvider() {
 
         // 安全信息配置
         Credential.Builder builder = Credential.builder()
-                .accessKeyId(alibabaCloudConfig.getSecret().getAccessKeyId())
-                .accessKeySecret(alibabaCloudConfig.getSecret().getAccessKeySecret());
+                .accessKeyId(alibabaCloudConfig.getSamSecret().getAccessKeyId())
+                .accessKeySecret(alibabaCloudConfig.getSamSecret().getAccessKeySecret());
 
-        String securityToken = alibabaCloudConfig.getSecret().getSecurityToken();
+        String securityToken = alibabaCloudConfig.getSamSecret().getSecurityToken();
         if (securityToken != null) {
             builder.securityToken(securityToken);
         }

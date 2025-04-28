@@ -12,7 +12,7 @@ public class AlibabaCloudConfig {
     /**
      * 安全验证
      */
-    private Secret secret;
+    private Secret samSecret;
 
     @Data
     public static class Secret {
