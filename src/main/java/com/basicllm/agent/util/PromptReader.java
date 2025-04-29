@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * 提示词读取器
@@ -19,6 +21,22 @@ public class PromptReader {
     public static String readPrompt(String promptPath) {
         String path = System.getProperty("user.dir") + "/prompt/" + promptPath;
         return readTextFile(path);
+    }
+
+    /**
+     * 读取指定模型对应的提示词，如果不存在指定模型的提示词，那么就返回默认路径下的提示词
+     *
+     * @param model      模型名
+     * @param promptPath 项目目录下 {@code /prompt/{model}/} 下的提示词文件路径
+     * @return 提示词文件内容
+     */
+    public static String readPrompt(String model,String promptPath) {
+        String path = System.getProperty("user.dir") + "/prompt/" + model + "/" + promptPath;
+        if (Files.exists(Path.of(path))) {
+            return readTextFile(path);
+        } else {
+            return readPrompt(promptPath);
+        }
     }
 
     /**
@@ -39,4 +57,5 @@ public class PromptReader {
         }
         return content.toString();
     }
+
 }

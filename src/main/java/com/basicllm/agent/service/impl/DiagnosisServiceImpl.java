@@ -128,9 +128,9 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         // 构建系统提示词
         String systemPrompt;
         if (useRag) {
-            systemPrompt = PromptReader.readPrompt("diagnose-rag.prompt");
+            systemPrompt = PromptReader.readPrompt(model,"diagnose-rag.prompt");
         } else {
-            systemPrompt = PromptReader.readPrompt("diagnose.prompt");
+            systemPrompt = PromptReader.readPrompt(model,"diagnose.prompt");
         }
         chatMessages.add(ChatMessage.create(
                 ChatRoleEnum.SYSTEM,
@@ -141,14 +141,14 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         String userPrompt;
         if (useRag) {
 
-            userPrompt = PromptReader.readPrompt("user-rag.prompt");
+            userPrompt = PromptReader.readPrompt(model,"user-rag.prompt");
 
             // 获取知识库内容，并填充知识库
             String knowledge = getKnowledgeFromRAG(condition);
             userPrompt = userPrompt.replaceAll("\\{knowledge}",knowledge);
 
         } else {
-            userPrompt = PromptReader.readPrompt("user.prompt");
+            userPrompt = PromptReader.readPrompt(model,"user.prompt");
         }
 
         userPrompt = userPrompt.replaceAll("\\{patient-condition}",condition.report());
@@ -173,7 +173,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private String getKnowledgeFromRAG(PatientCondition condition) {
 
         String queryPrompt = PromptReader.readPrompt("knowledge-base-query.prompt");
-        queryPrompt = queryPrompt.replaceAll("\\{patient-condition}",condition.conciseReport());
+        queryPrompt = queryPrompt.replaceAll("\\{concise-patient-condition}",condition.conciseReport());
         List<String> searchResultList =  knowledgeBaseService.simpleSearch(queryPrompt);
 
         if (searchResultList != null) {
@@ -186,6 +186,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         } else {
             return "未检索到相关内容";
         }
+
     }
 
 }
