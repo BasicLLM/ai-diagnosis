@@ -3,6 +3,7 @@ package com.basicllm.agent.consumer;
 import com.basicllm.agent.model.DiagnosticResult;
 import com.basicllm.agent.third.aichat.model.component.ChatMessage;
 import com.basicllm.agent.third.aichat.model.constant.ChatMessageFinishReasonEnum;
+import com.basicllm.agent.third.aichat.model.constant.ChatRoleEnum;
 import com.basicllm.agent.third.aichat.model.response.ChatCompletionResponse;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -51,19 +52,17 @@ public class DiagnosticConsumer implements Consumer<ChatCompletionResponse> {
                 // 检查是否存在疾病结束标签
                 if (diseasesText.contains(DiagnosticReportLabelTag.DISEASES_END)) {
 
-                    // 去除疾病开始标签
-                    String tContent = content.replace(DiagnosticReportLabelTag.DISEASES_START,"");
-
-                    // 将疾病和诊断原因分开
-                    String[] segments = tContent.split(DiagnosticReportLabelTag.DISEASES_END);
-
                     // 提取疾病
                     List<String> extractedDiseaseList = extractDiseases(diseasesText);
                     result.setDiseases(extractedDiseaseList);
 
-                    // 提取病因
-                    if (segments.length > 1) {
-                        result.setReasons(segments[1]);
+                    // 提取诊断分析
+                    String reasons = diseasesText.substring(
+                            diseasesText.indexOf(DiagnosticReportLabelTag.DISEASES_END) +
+                                    DiagnosticReportLabelTag.DISEASES_END.length()
+                    ).trim();
+                    if (!reasons.isEmpty()) {
+                        result.setReasons(reasons);
                     }
 
                     diseaseDone = true;
@@ -73,7 +72,7 @@ public class DiagnosticConsumer implements Consumer<ChatCompletionResponse> {
                 }
 
             } else {
-                // 如果疾病标签已经完成，那么直接将其加入病因中
+                // 如果疾病标签已经完成，那么直接将其加入诊断分析中
                 result.setReasons(content);
             }
 
