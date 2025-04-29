@@ -107,13 +107,13 @@ docker run -d -p 9015:9015 -v /path/to/config:/config -v /path/to/prompt:/prompt
 | diseases | String List | 疾病列表 |
 | reasons  | String      | 诊断分析 |
 
-注意，第一次返回的值为疾病列表（diseases），后续返回的都是诊断分析 （reasons）
+注意，第一次返回的值为疾病列表（diseases）和诊断分析 （reasons），后续返回的都是诊断分析 （reasons）
 
 **返回示例：**
 
 第一次返回：
 ```json lines
-{"diseases":["腹股沟疝","阑尾炎","感染性发热"]}
+{"diseases":["腹股沟疝","阑尾炎","感染性发热"],"reasons":"1. "}
 ```
 
 后续返回：
