@@ -6,6 +6,34 @@ https://zhangming.me/ai:demo:ai-diagnosis
 
 ![AI 诊断界面](docs/ai-diagnosis.gif)
 
+### 后端部署目录结构
+
+```
+─┬─
+ ├─ config                            # 配置目录
+ │     └─ application.yml             # 配置文件
+ │
+ ├─ prompt                            # 提示词目录
+ │     ├─ deepseek-chat               # 【可选】自定义的模型提示词目录，目录名为模型名
+ │     │       └─ diagnose.prompt     # 【可选】自定义启用RAG的诊断提示词，指定模型（此处为 deepseek-chat）会优先采用该提示词
+ │     │
+ │     ├─ diagnose.prompt             # 不启用RAG的诊断提示词
+ │     ├─ diagnose-rag.prompt         # 启用RAG的诊断提示词
+ │     ├─ knowledge-base-query.prompt # 查询知识库的提示词
+ │     ├─ user.prompt                 # 不启用RAG的用户提示词
+ │     └─ user-rag.prompt             # 启用RAG的用户提示词
+ │
+ └─ ai-diagnosis.jar                  # 程序 jar 包
+```
+
+### Docker 部署
+
+代码执行 Maven 打包时，会自动生成 docker 镜像
+
+```shell
+docker run -d -p 9015:9015 -v /path/to/config:/config -v /path/to/prompt:/prompt ai-diagnosis:0.0.1
+```
+
 ### 诊断接口
 
 **接口地址：** `/v1/ai/diagnose`
