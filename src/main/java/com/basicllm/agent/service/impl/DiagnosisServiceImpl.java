@@ -1,5 +1,9 @@
 package com.basicllm.agent.service.impl;
 
+import com.alibaba.dashscope.aigc.generation.*;
+import com.alibaba.dashscope.common.Message;
+import com.alibaba.dashscope.exception.InputRequiredException;
+import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.basicllm.agent.consumer.DiagnosticConsumer;
 import com.basicllm.agent.model.ModelSetting;
 import com.basicllm.agent.model.PatientCondition;
@@ -7,6 +11,7 @@ import com.basicllm.agent.rag.KnowledgeBaseService;
 import com.basicllm.agent.service.DiagnosisService;
 import com.basicllm.agent.third.aichat.model.component.ChatMessage;
 import com.basicllm.agent.third.aichat.model.config.AiProxyServiceConfig;
+import com.basicllm.agent.third.aichat.model.constant.ChatMessageFinishReasonEnum;
 import com.basicllm.agent.third.aichat.model.constant.ChatRoleEnum;
 import com.basicllm.agent.third.aichat.model.request.ChatCompletionRequest;
 import com.basicllm.agent.third.aichat.model.response.ChatCompletionResponse;
@@ -15,6 +20,7 @@ import com.basicllm.agent.util.PromptReader;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.reactivex.Flowable;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.core.ParameterizedTypeReference;
@@ -25,6 +31,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,13 +67,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         // (1) 创建 SseEmitter
         SseEmitter sseEmitter = new SseEmitter();
 
-        // (2) 构建流推送端
+        // (2) 获取代理信息
         AiProxyServiceConfig aiProxyServiceConfig = aiChatProxyService.getAiProxyServiceConfigById(setting.getProvider());
-        WebClient webClient = WebClient.builder()
-                .baseUrl(aiProxyServiceConfig.getChatService().getChatCompletionsUrl())
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.TEXT_EVENT_STREAM_VALUE)
-                .build();
 
         // (3) 获取一个随机的密钥
         String key = aiChatProxyService.getRandomKeyById(setting.getProvider());
@@ -74,35 +76,71 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         // (4) 构建请求
         ChatCompletionRequest request = buildRequest(setting.getModel(),setting.getUseRag(),condition);
 
-        // (5) 发送请求
-        Flux<String> eventStream = webClient
-                .post()
-                .header("Authorization", String.format("Bearer %s",key))
-                .bodyValue(request)
-                .retrieve()
-                .bodyToFlux(TYPE);
-
-        // (6) 将数据发送给前端
+        // (5) 构建消费者
         DiagnosticConsumer consumer = new DiagnosticConsumer(sseEmitter);
-        eventStream.subscribe(data -> {
 
-            if (data.equals("[DONE]")) {
-                sseEmitter.complete();
-                return;
-            }
+        if (aiProxyServiceConfig.isDashboardApi()) {
 
-            ChatCompletionResponse response;
+            // 构建推送端
+            Generation gen = new Generation();
+
+            // 转换请求
+            GenerationParam param = toGenerationParam(request, key);
+
+            // 发送请求
+            Flowable<GenerationResult> flowableResult = null;
             try {
-                response = objectMapper.readValue(data,ChatCompletionResponse.class);
-            } catch (JsonProcessingException e) {
+                flowableResult = gen.streamCall(param);
+            } catch (NoApiKeyException | InputRequiredException e) {
                 throw new RuntimeException(e);
             }
-            consumer.accept(response);
 
-        });
+            // 推流
+            flowableResult.subscribe(data -> {
+                consumer.accept(toChatCompletionResponse(data,true));
+            });
 
-        // (7) 完成请求
-        eventStream.doOnComplete(sseEmitter::complete);
+            // 完成请求
+            flowableResult.doOnComplete(sseEmitter::complete);
+
+        } else {
+
+            // 构建推送端
+            WebClient webClient = WebClient.builder()
+                    .baseUrl(aiProxyServiceConfig.getChatService().getChatCompletionsUrl())
+                    .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .defaultHeader(HttpHeaders.ACCEPT, MediaType.TEXT_EVENT_STREAM_VALUE)
+                    .build();
+
+            // 发送请求
+            Flux<String> eventStream = webClient
+                    .post()
+                    .header("Authorization", String.format("Bearer %s",key))
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToFlux(TYPE);
+
+            // 将数据发送给前端
+            eventStream.subscribe(data -> {
+
+                if (data.equals("[DONE]")) {
+                    sseEmitter.complete();
+                    return;
+                }
+
+                ChatCompletionResponse response;
+                try {
+                    response = objectMapper.readValue(data,ChatCompletionResponse.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                consumer.accept(response);
+
+            });
+
+            // 完成请求
+            eventStream.doOnComplete(sseEmitter::complete);
+        }
 
         // (8) 返回 SseEmitter
         return sseEmitter;
@@ -187,6 +225,115 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             return "未检索到相关内容";
         }
 
+    }
+
+    /**
+     * DashScope 平台请求参数
+     *
+     * @param request 兼容请求
+     * @param key     密钥
+     * @return DashScope 平台请求参数
+     */
+    private GenerationParam toGenerationParam(ChatCompletionRequest request, String key) {
+
+        // 构建消息列表
+        List<Message> messages = new ArrayList<>();
+        for (ChatMessage chatMessage : request.getMessages()) {
+            Message message = Message.builder()
+                    .role(chatMessage.getRole().value())
+                    .content(chatMessage.getContent())
+                    .build();
+            messages.add(message);
+        }
+
+        // 构建请求参数
+        GenerationParam param = GenerationParam.builder()
+                .apiKey(key)
+                .model(request.getModel())
+                .messages(messages)
+                .incrementalOutput(true)
+                .resultFormat(GenerationParam.ResultFormat.MESSAGE)
+                .build();
+
+        return param;
+
+    }
+
+    /**
+     * 将 DashScope 平台请求响应转换为兼容请求响应
+     *
+     * @param result DashScope 平台请求响应
+     * @param stream 是否为流式输出
+     * @return 兼容响应
+     */
+    private ChatCompletionResponse toChatCompletionResponse(GenerationResult result, boolean stream) {
+        GenerationOutput generationOutput = result.getOutput();
+
+        // 转换 Choice
+        List<ChatCompletionResponse.Choice> choices = new ArrayList<>();
+        for (GenerationOutput.Choice choice : generationOutput.getChoices()) {
+
+            ChatCompletionResponse.Choice newChoice = new ChatCompletionResponse.Choice();
+
+            // 设置顺序
+            newChoice.setIndex(choice.getIndex());
+
+            // 设置消息
+            ChatMessage chatMessage = toChatMessage(choice.getMessage());
+            if (stream) {
+                newChoice.setDelta(chatMessage);
+            } else {
+                newChoice.setMessage(chatMessage);
+            }
+
+            // 设置结束原因
+            String finishReason = choice.getFinishReason();
+            if (finishReason != null) {
+                ChatMessageFinishReasonEnum finishReasonEnum = null;
+                for (ChatMessageFinishReasonEnum reasonEnum : ChatMessageFinishReasonEnum.values()) {
+                    if (reasonEnum.value().equals(finishReason)) {
+                        finishReasonEnum = reasonEnum;
+                    }
+                }
+                if (finishReasonEnum != null) {
+                    newChoice.setFinishReason(finishReasonEnum);
+                }
+            }
+
+            choices.add(newChoice);
+        }
+
+        // 转换 usage
+        GenerationUsage generationUsage = result.getUsage();
+        ChatCompletionResponse.Usage usage = new ChatCompletionResponse.Usage();
+        usage.setPromptTokens(generationUsage.getInputTokens());
+        usage.setCompletionTokens(generationUsage.getOutputTokens());
+        usage.setTotalTokens(generationUsage.getTotalTokens());
+
+        // 设置返回
+        ChatCompletionResponse response = new ChatCompletionResponse();
+        response.setId(result.getRequestId());
+        response.setChoices(choices);
+        response.setUsage(usage);
+
+        return response;
+    }
+
+    /**
+     * 将 DashScope 平台消息转换为兼容消息
+     *
+     * @param message DashScope 平台消息
+     * @return 兼容消息
+     */
+    private ChatMessage toChatMessage(Message message) {
+
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setRole(
+                ChatRoleEnum.get(message.getRole())
+        );
+        chatMessage.setContent(message.getContent());
+
+        return chatMessage;
     }
 
 }

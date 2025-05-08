@@ -25,6 +25,12 @@ aichat:
       authentications:
         - organization-id: "ai-diagnose" # 此处填写项目名
           key: "sk-xxxxxx"               # 此处填写 deepseek 密钥
+    - id: "bailian-dashboard"
+      name: "aliyun bailian dashboard"
+      dashboard-api: true                # 此处使用的是阿里百炼大模型的 dashboard api
+      authentications:
+        - organization-id: "llm-xxxxxx"
+          key: "sk-xxxxxx"
 
 alibaba-cloud:
   sam-secret:

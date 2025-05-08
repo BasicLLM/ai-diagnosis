@@ -13,6 +13,8 @@ public class AiProxyServiceConfig {
 
     private ChatServiceConfig chatService;
 
+    private boolean dashboardApi = false;
+
     @Data
     public static class ChatServiceConfig {
 

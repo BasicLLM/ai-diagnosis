@@ -7,10 +7,12 @@ import java.util.Map;
 
 public enum ChatRoleEnum implements StandardEnum<ChatRoleEnum> {
 
-    SYSTEM    (0,"system"),
-    ASSISTANT (1,"assistant"),
-    USER      (2,"user"),
-    TOOL      (3,"tool")
+    SYSTEM     (0,"system"),
+    ASSISTANT  (1,"assistant"),
+    USER       (2,"user"),
+    TOOL       (3,"tool"),
+    BOT        (4,"bot"),
+    ATTACHMENT (5,"attachment"),
     ;
 
     private final int code;

@@ -29,6 +29,17 @@ public class AiChatProxyService {
     }
 
     /**
+     * 是否为 DashScope API
+     *
+     * @param id 代理ID
+     * @return 是否为 DashScope API
+     */
+    public boolean checkDashScopeApi(String id) {
+        AiProxyServiceConfig aiProxyServiceConfig = getAiProxyServiceConfigById(id);
+        return aiProxyServiceConfig.isDashboardApi();
+    }
+
+    /**
      * 根据 ID 获取一个随机认证密钥
      * @param id 代理ID
      * @return 随机的认证密钥
