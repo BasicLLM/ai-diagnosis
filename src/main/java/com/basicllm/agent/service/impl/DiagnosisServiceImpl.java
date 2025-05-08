@@ -2,6 +2,7 @@ package com.basicllm.agent.service.impl;
 
 import com.alibaba.dashscope.aigc.generation.*;
 import com.alibaba.dashscope.common.Message;
+import com.alibaba.dashscope.common.ResultCallback;
 import com.alibaba.dashscope.exception.InputRequiredException;
 import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.basicllm.agent.consumer.DiagnosticConsumer;
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.Flowable;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -35,6 +37,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class DiagnosisServiceImpl implements DiagnosisService {
 
@@ -88,20 +91,28 @@ public class DiagnosisServiceImpl implements DiagnosisService {
             GenerationParam param = toGenerationParam(request, key);
 
             // 发送请求
-            Flowable<GenerationResult> flowableResult = null;
             try {
-                flowableResult = gen.streamCall(param);
+                gen.streamCall(param, new ResultCallback<GenerationResult>() {
+
+                    @Override
+                    public void onEvent(GenerationResult generationResult) {
+                        consumer.accept(toChatCompletionResponse(generationResult,true));
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        sseEmitter.complete();
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        log.error(e.getMessage());
+                    }
+
+                });
             } catch (NoApiKeyException | InputRequiredException e) {
                 throw new RuntimeException(e);
             }
-
-            // 推流
-            flowableResult.subscribe(data -> {
-                consumer.accept(toChatCompletionResponse(data,true));
-            });
-
-            // 完成请求
-            flowableResult.doOnComplete(sseEmitter::complete);
 
         } else {
 
