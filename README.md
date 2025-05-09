@@ -4,7 +4,9 @@
 
 ---
 
-https://zhangming.me/ai:demo:ai-diagnosis
+演示界面：https://zhangming.me/ai:demo:ai-diagnosis
+
+演示接口：https://api.aiservice.cloud/completions/v1/ai-diagnose
 
 ![AI 诊断界面](docs/ai-diagnosis.gif)
 
